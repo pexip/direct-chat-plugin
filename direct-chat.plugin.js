@@ -26,7 +26,7 @@
         script.setAttribute('type', 'text/javascript');
         script.setAttribute(
             'src',
-            'custom_configuration/plugins/direct-chat-plugin/lib/jsframe.js'
+            'custom_configuration/plugins/direct-chat-plugin/lib/winbox.js'
         );
         document.getElementsByTagName('head')[0].appendChild(script);
 
@@ -73,7 +73,7 @@
     function setMessageIconReadState(readState, uuid) {
         var matchingMessageIcon = messaggeIconMap.get(uuid);
 
-        if(!matchingMessageIcon){
+        if (!matchingMessageIcon) {
             return;
         }
 
@@ -89,8 +89,7 @@
         if (messaggeIconMap.has(uuid)) {
             if (!displayedFrames.has(uuid)) {
                 setMessageIconReadState(false, uuid);
-            }
-            else{
+            } else {
                 setMessageIconReadState(true, uuid);
             }
             //Leave function if message icon already exists
@@ -178,7 +177,6 @@
                 generateDomElement(item, index, inboundElement);
             });
         }
-
     }
     // context menu item functions
     function openChat(conferenceDetails) {
@@ -186,9 +184,51 @@
             return;
         }
 
+        const x = window.innerWidth / 2;
+        const y = window.innerHeight / 2;
+
         const uuid = conferenceDetails.uuid;
-        const jsFrame = new JSFrame();
-        const frame = jsFrame.create({
+        const winbox = new WinBox({
+            title: 'Direct chat with ' + conferenceDetails.name,
+            url:
+                'custom_configuration/plugins/direct-chat-plugin/assets/dialog.html',
+            width: 380,
+            height: 400,
+            class: ['no-min', 'no-max', 'no-full'],
+            x: x,
+            y: y,
+            onclose: function onclose() {
+                displayedFrames.delete(uuid);
+                return false;
+            },
+            onshow: function () {
+                alert('tad');
+                /*               frame.on('#sendMessageButton', 'click', (_frame, evt) => {
+                    //Setupa
+                   var payload = frame.$('#outboundChatMessageInput').value;
+                    rtc.sendChatMessage(payload, uuid);
+                    fillChatFrame({
+                        uuid: uuid,
+                        payload: payload,
+                        origin: 'You'
+                    });
+                    generateMessageIcon(uuid);
+                });
+
+
+                var inbound = frame.$('#messagePanel');
+                inboundElements.set(uuid, inbound);
+                displayedFrames.set(uuid, frame);
+                frame.show();
+                setMessageIconReadState(true,uuid)
+                fillFramelWithHistory(uuid);
+*/
+            }
+        });
+
+        winbox.show();
+
+        /*     const frame = jsFrame.create({
             title: 'Direct chat with ' + conferenceDetails.name,
             movable: true, //Enable to be moved by mouse
             resizable: true, //Enable to be resized by mouse
@@ -207,7 +247,7 @@
                 //Process send message event
                 frame.on('#sendMessageButton', 'click', (_frame, evt) => {
                     //Setupa
-                    var payload = frame.$('#outboundChatMessageInput').value;
+                   var payload = frame.$('#outboundChatMessageInput').value;
                     rtc.sendChatMessage(payload, uuid);
                     fillChatFrame({
                         uuid: uuid,
@@ -230,7 +270,7 @@
                 setMessageIconReadState(true,uuid)
                 fillFramelWithHistory(uuid);
             }
-        });
+        }); */
         //Show the window
     }
 
