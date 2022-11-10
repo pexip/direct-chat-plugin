@@ -1,0 +1,19 @@
+{
+    "id": "direct-chat-plugin-1.0",
+    "name": "Direct Chat",
+    "description": "Allows to sennd chat messages directly with specific participants",
+    "version": 1.0,
+    "srcURL": "direct-chat.plugin.js",
+    "allowUnload": false,
+    "platforms": ["web"],
+    "participantRoles": ["chair", "guest"],
+    "menuItems": {
+        "participants": [
+            {
+                "icon": "icons.svg#messages",
+                "label": "Direct Chat",
+                "action": "openChat"
+            }
+        ]
+    }
+}
