@@ -3,6 +3,9 @@
     var rtc;
     var initiated = false;
 
+    const svgns = 'http://www.w3.org/2000/svg';
+    const xlinkns = 'http://www.w3.org/1999/xlink';
+
     const inboundElements = new Map();
     const messaggeHistoryMap = new Map();
     const messaggeIconMap = new Map();
@@ -67,12 +70,32 @@
         }
     }
 
-    function generateMessageIcon(uuid) {
-        if (messaggeIconMap.has(uuid)) {
+    function setMessageIconReadState(readState, uuid) {
+        var matchingMessageIcon = messaggeIconMap.get(uuid);
+
+        if(!matchingMessageIcon){
             return;
         }
-        var svgns = 'http://www.w3.org/2000/svg';
-        var xlinkns = 'http://www.w3.org/1999/xlink';
+
+        var use = matchingMessageIcon.getElementsByTagName('use')[0];
+        if (!readState) {
+            use.setAttributeNS(xlinkns, 'href', 'icons.svg#messages-green');
+        } else {
+            use.setAttributeNS(xlinkns, 'href', 'icons.svg#messages');
+        }
+    }
+
+    function generateMessageIcon(uuid) {
+        if (messaggeIconMap.has(uuid)) {
+            if (!displayedFrames.has(uuid)) {
+                setMessageIconReadState(false, uuid);
+            }
+            else{
+                setMessageIconReadState(true, uuid);
+            }
+            //Leave function if message icon already exists
+            return;
+        }
 
         const li = document.createElement('li');
         const svg = document.createElementNS(svgns, 'svg');
@@ -105,12 +128,18 @@
         var ngContentTag = iconArea
             .getAttributeNames()
             .find(element => element.startsWith('_ngcontent'));
+
         li.setAttribute(ngContentTag, '');
         svg.setAttribute(ngContentTag, '');
         use.setAttribute(ngContentTag, '');
 
-        iconArea.appendChild(li);
         messaggeIconMap.set(uuid, li);
+
+        if (!displayedFrames.has(uuid)) {
+            setMessageIconReadState(false, uuid);
+        }
+
+        iconArea.appendChild(li);
     }
 
     function fillFramelWithHistory(uuid) {
@@ -149,6 +178,7 @@
                 generateDomElement(item, index, inboundElement);
             });
         }
+
     }
     // context menu item functions
     function openChat(conferenceDetails) {
@@ -189,14 +219,15 @@
 
                 //Process close frame event
                 frame.on('closeButton', 'click', (_frame, evt) => {
-                    alert('test');
                     frame.closeFrame();
+                    displayedFrames.delete(uuid);
                 });
 
                 var inbound = frame.$('#messagePanel');
                 inboundElements.set(uuid, inbound);
                 displayedFrames.set(uuid, frame);
                 frame.show();
+                setMessageIconReadState(true,uuid)
                 fillFramelWithHistory(uuid);
             }
         });
