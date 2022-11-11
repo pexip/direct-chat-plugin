@@ -11,6 +11,8 @@
     const messaggeIconMap = new Map();
     const displayedFrames = new Map();
 
+    var jsFrame;
+
     class MessaggeHistoryEntry {
         constructor(payload, time, sender) {
             this.payload = payload;
@@ -28,10 +30,12 @@
             'src',
             'custom_configuration/plugins/direct-chat-plugin/lib/jsframe.js'
         );
+
         document.getElementsByTagName('head')[0].appendChild(script);
 
         conferenceDetails$.subscribe(details => {
             if (details.started && !initiated) {
+                jsFrame = new JSFrame();
                 getMainPexRTC();
                 var onChatMessageListener = rtc.onChatMessage;
 
@@ -73,7 +77,7 @@
     function setMessageIconReadState(readState, uuid) {
         var matchingMessageIcon = messaggeIconMap.get(uuid);
 
-        if(!matchingMessageIcon){
+        if (!matchingMessageIcon) {
             return;
         }
 
@@ -89,8 +93,7 @@
         if (messaggeIconMap.has(uuid)) {
             if (!displayedFrames.has(uuid)) {
                 setMessageIconReadState(false, uuid);
-            }
-            else{
+            } else {
                 setMessageIconReadState(true, uuid);
             }
             //Leave function if message icon already exists
@@ -178,7 +181,6 @@
                 generateDomElement(item, index, inboundElement);
             });
         }
-
     }
     // context menu item functions
     function openChat(conferenceDetails) {
@@ -187,7 +189,6 @@
         }
 
         const uuid = conferenceDetails.uuid;
-        const jsFrame = new JSFrame();
         const frame = jsFrame.create({
             title: 'Direct chat with ' + conferenceDetails.name,
             movable: true, //Enable to be moved by mouse
@@ -217,6 +218,10 @@
                     generateMessageIcon(uuid);
                 });
 
+                frame.on('#dialog', 'click', (_frame, evt) => {
+                   _frame.requestFocus();
+                });
+
                 //Process close frame event
                 frame.on('closeButton', 'click', (_frame, evt) => {
                     frame.closeFrame();
@@ -227,7 +232,7 @@
                 inboundElements.set(uuid, inbound);
                 displayedFrames.set(uuid, frame);
                 frame.show();
-                setMessageIconReadState(true,uuid)
+                setMessageIconReadState(true, uuid);
                 fillFramelWithHistory(uuid);
             }
         });
