@@ -200,10 +200,9 @@
 
             urlLoaded: frame => {
                 //Position
-                const align = 'CENTER_CENTER';
                 const x = window.innerWidth / 2;
                 const y = window.innerHeight / 2;
-                frame.setPosition(x, y, align);
+                frame.setPosition(x - frame.getWidth()/ 2, y - frame.getHeight() / 2);
 
                 //Process send message event
                 frame.on('#sendMessageButton', 'click', (_frame, evt) => {
@@ -219,7 +218,7 @@
                 });
 
                 frame.on('#dialog', 'click', (_frame, evt) => {
-                   _frame.requestFocus();
+                    _frame.requestFocus();
                 });
 
                 //Process close frame event
@@ -228,7 +227,34 @@
                     displayedFrames.delete(uuid);
                 });
 
+                //Process close frame event
+                frame.on('frame', 'move', (data) => {
+
+                    var x = data.pos.x;
+                    var y = data.pos.y;
+
+                    if(data.pos.y <= 0){
+                        y = 0;
+                    };
+
+                    if(data.pos.x <= 0){
+                        x = 0;
+                    };
+
+
+                    if(data.pos.y + data.size.height > window.innerHeight){
+                        y = window.innerHeight - data.size.height;
+                    };
+
+                    if(data.pos.x + data.size.width > window.innerWidth){
+                        x = window.innerWidth - data.size.width;
+                    };
+
+                    data.target.setPosition(x,y,'LEFT_TOP');
+                });
+
                 var inbound = frame.$('#messagePanel');
+
                 inboundElements.set(uuid, inbound);
                 displayedFrames.set(uuid, frame);
                 frame.show();
