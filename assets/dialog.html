@@ -1,99 +1,137 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<style>
- html{
-    background: white;
-    height: 100%;
-    overflow: auto;
- }
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        html {
+            background: white;
+            height: 100%;
+            overflow: auto;
+        }
 
- body{
-    height: 100%;
-    margin: 0;
- }
+        body {
+            height: 100%;
+            margin: 0;
+        }
 
-.container {
-  border: 2px solid #dedede;
-  background-color: #f1f1f1;
-  border-radius: 5px;
-  padding: 10px;
-  margin: 10px 0;
-  word-wrap: break-word;
-}
+        .container {
+            border: 2px solid #dedede;
+            background-color: #f1f1f1;
+            border-radius: 5px;
+            padding: 0px 10px 5px 10px;
+            margin: 10px 10px;
+            word-wrap: break-word;
+            font-family: "Whyte-Book", sans-serif;
+        }
 
-.darker {
-  border-color: #ccc;
-  background-color: #ddd;
-}
+        .darker {
+            border-color: #ccc;
+            background-color: #ddd;
+        }
 
-.container::after {
-  content: "";
-  clear: both;
-  display: table;
-}
+        .container::after {
+            content: "";
+            clear: both;
+            display: table;
+        }
 
-.container img {
-  float: left;
-  max-width: 60px;
-  width: 100%;
-  margin-right: 20px;
-  border-radius: 50%;
-}
+        .container img {
+            float: left;
+            max-width: 60px;
+            width: 100%;
+            margin-right: 20px;
+            border-radius: 50%;
+        }
 
-.container img.right {
-  float: right;
-  margin-left: 20px;
-  margin-right:0;
-}
+        .container img.right {
+            float: right;
+            margin-left: 20px;
+            margin-right: 0;
+        }
 
-.time-right {
-  float: right;
-  color: #aaa;
-}
+        .time-right {
+            float: right;
+            color: #aaa;
+        }
 
-.time-left {
-  float: left;
-  color: #999;
-}
+        .time-left {
+            float: left;
+            color: #999;
+        }
 
-.dialog{
-    display: flex;
-    flex-flow: column;
-    height: 100%;
-    padding-left: 5px;
-    padding-right: 5px;
+        .dialog {
+            display: flex;
+            flex-flow: column;
+            height: 100%;
+            padding-left: 5px;
+            padding-right: 5px;
+        }
 
-}
+        .messagePanel {
+            height: 70%;
+            overflow: auto;
+        }
 
-.messagePanel{
-    height: 70%;
-    overflow: auto;
-}
+        .sendMessageButton {
+            cursor: pointer;
+            background-color: #00d786;
+            border-color: #00d786;
+            color: #ffffff;
+            border-radius: 50px;
+            border-width: 1px;
+            border-style: solid;
+            margin: 5px;
+            padding: 10px 15px 11px;
+            font-weight: normal;
+            font-size: 1em;
+            min-width: 100px;
+            transition: background-color 0.5s ease, border-color 0.5s ease, width 0.5s ease;
+            background-color: #00d786;
+            border-color: #00d786;
+            color: #ffffff;
+            border-radius: 50px;
+            border-width: 1px;
+            border-style: solid;
+            margin: 5px;
+            padding: 10px 15px 11px;
+            font-weight: normal;
+            font-size: 1em;
+            min-width: 100px;
+            transition: background-color 0.5s ease, border-color 0.5s ease, width 0.5s ease;
+        }
 
-</style>
+        .sendMessageButtonWrapper {
+            text-align: center;
+        }
+
+        .outboundChatMessageInput {
+            width: 100%;
+            padding: 8px 35px 8px 8px;
+            border: none;
+            font-size: 16px;
+            font-weight: lighter;
+            box-sizing: border-box;
+            background-color: #ffffff;
+            border: 1px solid #c4c4c4;
+            border-radius: 4px;
+        }
+    </style>
 </head>
+
 <body>
-
-<div  id="dialog" class="dialog">
-
-    <div id="messagePanel" class="messagePanel">
-
+    <div id="dialog" class="dialog">
+        <div id="messagePanel" class="messagePanel">
+        </div>
+        <p>
+            <input id="outboundChatMessageInput" class="outboundChatMessageInput" autocomplete="off"></input>
+        </p>
+        <p class="sendMessageButtonWrapper">
+            <button id="sendMessageButton" class="sendMessageButton">
+                Send Message
+            </button>
+        </p>
     </div>
-    <p>
-        <input
-            id="outboundChatMessageInput"
-        ></input>
-    </p>
-    <p>
-        <button
-            id="sendMessageButton"
-            class="dialog-button green-action-button"
-        >
-            Send Message
-        </button>
-    </p>
-</div>
 </body>
+
 </html>

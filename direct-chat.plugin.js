@@ -153,6 +153,7 @@
             matchingMessageHistory.forEach(function (item, index) {
                 generateDomElement(item, index, inboundElement);
             });
+            scrollToBottom(inboundElement);
         }
     }
 
@@ -180,6 +181,7 @@
             matchingMessageHistory.forEach(function (item, index) {
                 generateDomElement(item, index, inboundElement);
             });
+            scrollToBottom(inboundElement);
         }
     }
     // context menu item functions
@@ -194,26 +196,49 @@
             movable: true, //Enable to be moved by mouse
             resizable: true, //Enable to be resized by mouse
             width: 380,
-            height: 400,
+            height: 460,
             url:
                 'custom_configuration/plugins/direct-chat-plugin/assets/dialog.html',
+            appearance: getOriginalStyle(jsFrame.createFrameAppearance()),
 
             urlLoaded: frame => {
                 //Position
                 const x = window.innerWidth / 2;
                 const y = window.innerHeight / 2;
-                frame.setPosition(x - frame.getWidth()/ 2, y - frame.getHeight() / 2);
+                frame.setPosition(
+                    x - frame.getWidth() / 2,
+                    y - frame.getHeight() / 2
+                );
+
+                //Send chat message on enter
+                const sendMessageButton = frame.$('#sendMessageButton');
+                const outboundChatMessageInput = frame.$(
+                    '#outboundChatMessageInput'
+                );
+                outboundChatMessageInput.addEventListener(
+                    'keypress',
+                    function (event) {
+                        if (event.key === 'Enter') {
+                            event.preventDefault();
+                            sendMessageButton.click();
+                        }
+                    }
+                );
 
                 //Process send message event
                 frame.on('#sendMessageButton', 'click', (_frame, evt) => {
                     //Setupa
-                    var payload = frame.$('#outboundChatMessageInput').value;
+                    var messageInputElement = frame.$(
+                        '#outboundChatMessageInput'
+                    );
+                    var payload = messageInputElement.value;
                     rtc.sendChatMessage(payload, uuid);
                     fillChatFrame({
                         uuid: uuid,
                         payload: payload,
                         origin: 'You'
                     });
+                    messageInputElement.value = '';
                     generateMessageIcon(uuid);
                 });
 
@@ -228,29 +253,27 @@
                 });
 
                 //Process close frame event
-                frame.on('frame', 'move', (data) => {
-
+                frame.on('frame', 'move', data => {
                     var x = data.pos.x;
                     var y = data.pos.y;
 
-                    if(data.pos.y <= 0){
+                    if (data.pos.y <= 0) {
                         y = 0;
-                    };
+                    }
 
-                    if(data.pos.x <= 0){
+                    if (data.pos.x <= 0) {
                         x = 0;
-                    };
+                    }
 
-
-                    if(data.pos.y + data.size.height > window.innerHeight){
+                    if (data.pos.y + data.size.height > window.innerHeight) {
                         y = window.innerHeight - data.size.height;
-                    };
+                    }
 
-                    if(data.pos.x + data.size.width > window.innerWidth){
+                    if (data.pos.x + data.size.width > window.innerWidth) {
                         x = window.innerWidth - data.size.width;
-                    };
+                    }
 
-                    data.target.setPosition(x,y,'LEFT_TOP');
+                    data.target.setPosition(x, y, 'LEFT_TOP');
                 });
 
                 var inbound = frame.$('#messagePanel');
@@ -263,6 +286,94 @@
             }
         });
         //Show the window
+    }
+
+    function scrollToBottom(element) {
+        element.scroll({ top: element.scrollHeight, behavior: 'smooth' });
+    }
+    /**
+     * Generate(populate values to object) the original look
+     * @param frameAppearance
+     * @returns {*}
+     */
+    function getOriginalStyle(frameAppearance) {
+        // Specifies parameters for the appearance of the window,
+        // such as the title bar and border.
+        frameAppearance.titleBarHeight = '28px';
+        frameAppearance.titleBarCaptionFontSize = '20px';
+        frameAppearance.titleBarCaptionFontWeight = 'bold';
+        frameAppearance.titleBarCaptionLeftMargin = '10px';
+        frameAppearance.titleBarCaptionColorDefault = 'gray';
+        frameAppearance.titleBarCaptionColorFocused = 'white';
+        frameAppearance.titleBarCaptionTextShadow = null; //'0 1px 0 rgba(255,255,255,.7)';
+        frameAppearance.titleBarColorDefault = 'black';
+        frameAppearance.titleBarColorFocused = 'black';
+        frameAppearance.titleBarBorderBottomDefault = null;
+        frameAppearance.titleBarBorderBottomFocused = null;
+        frameAppearance.frameBorderRadius = '0px';
+        frameAppearance.frameBorderWidthDefault = '1px';
+        frameAppearance.frameBorderWidthFocused = '1px';
+        frameAppearance.frameBorderColorDefault = 'black';
+        //  frameAppearance.frameBorderColorFocused = 'red';
+
+        // Disable default title bar class
+        frameAppearance.titleBarClassNameDefault = ' ';
+        frameAppearance.titleBarClassNameFocused = ' ';
+
+        frameAppearance.onInitialize = function () {
+            // Create an original "close button".
+            // Decide which part of the window the close button should be placed in, and
+            // To create an original button, we declare a class called Text Button,
+            // which we get using the helper class called Parts Builder
+            var partsBuilder = frameAppearance.getPartsBuilder();
+            var closeButtonApr = partsBuilder.buildTextButtonAppearance();
+            closeButtonApr.width = 40;
+            closeButtonApr.height = 40;
+            closeButtonApr.borderRadius = 0;
+            closeButtonApr.borderWidth = 0;
+            closeButtonApr.borderColorDefault = 'transparent';
+            closeButtonApr.borderColorFocused = 'transparent';
+            closeButtonApr.borderColorHovered = 'transparent';
+            closeButtonApr.borderColorPressed = 'transparent';
+            closeButtonApr.borderStyleDefault = '';
+            closeButtonApr.borderStyleFocused =
+                closeButtonApr.borderStyleDefault;
+            closeButtonApr.borderStyleHovered =
+                closeButtonApr.borderStyleDefault;
+            closeButtonApr.borderStylePressed =
+                closeButtonApr.borderStyleDefault;
+            closeButtonApr.backgroundColorDefault = 'transparent';
+            closeButtonApr.backgroundColorFocused = 'transparent';
+            //  closeButtonApr.backgroundColorHovered = 'rgba(255, 0, 0, 0.2)';
+            //   closeButtonApr.backgroundColorPressed = 'rgba(255, 0, 0, 0.2)';
+            closeButtonApr.backgroundBoxShadow = null;
+            closeButtonApr.caption = '\u2716'; // Using text to represent the close mark
+            closeButtonApr.captionColorDefault = 'gray';
+            closeButtonApr.captionColorFocused = 'white';
+            closeButtonApr.captionColorHovered = 'white';
+            closeButtonApr.captionColorPressed = 'white';
+            closeButtonApr.captionShiftYpx = 1;
+            closeButtonApr.captionFontRatio = 0.6;
+
+            // Specify the button appearance
+            // when the close button is created using the Part Builder.
+            var closeButtonEle = partsBuilder.buildTextButton(closeButtonApr);
+            var closeButtonAnchor = 'RIGHT_TOP';
+            var closeButtonX = -10;
+            var closeButtonY =
+                -closeButtonApr.height / 2 -
+                parseInt(frameAppearance.titleBarHeight) / 2;
+
+            // Give it a reserved name "closeButton" to indicate that this is a "close button".
+            frameAppearance.addFrameComponent(
+                'closeButton',
+                closeButtonEle,
+                closeButtonX,
+                closeButtonY,
+                closeButtonAnchor
+            );
+        };
+        return frameAppearance;
     }
 
     // unload / cleanup function
