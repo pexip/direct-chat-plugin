@@ -1,10 +1,20 @@
 // Use IIFE (Immediately Invoked Function Expression) to wrap the plugin to not pollute global namespace with whatever is defined inside here
 (function () {
     var rtc;
+
     var initiated = false;
 
     const svgns = 'http://www.w3.org/2000/svg';
     const xlinkns = 'http://www.w3.org/1999/xlink';
+
+    const HREF = 'href';
+    const LI = 'li';
+    const SVG = 'svg';
+    const DIV = 'div';
+    const P = 'p';
+    const SPAN = 'span';
+    const USE = 'use';
+    const HEAD = 'head';
 
     const inboundElements = new Map();
     const messaggeHistoryMap = new Map();
@@ -24,6 +34,7 @@
     // Init function called by the PluginService when plugin is loaded
     function load(participants$, conferenceDetails$) {
         debugger;
+
         var script = document.createElement('script');
         script.setAttribute('type', 'text/javascript');
         script.setAttribute(
@@ -31,33 +42,67 @@
             'custom_configuration/plugins/direct-chat-plugin/lib/jsframe.js'
         );
 
-        document.getElementsByTagName('head')[0].appendChild(script);
+        document.getElementsByTagName(HEAD)[0].appendChild(script);
 
         conferenceDetails$.subscribe(details => {
+
+            var originalChatMessageListener;
+
+            var originalParticipantDelete;
+
             if (details.started && !initiated) {
                 jsFrame = new JSFrame();
                 getMainPexRTC();
-                var onChatMessageListener = rtc.onChatMessage;
-
+                originalChatMessageListener = rtc.onChatMessage;
                 rtc.onChatMessage = function (message) {
                     if (message.direct) {
                         generateMessageIcon(message.uuid);
                         fillChatFrame(message);
                     } else {
-                        onChatMessageListener(message);
+                        originalChatMessageListener(message);
                     }
                 };
 
+                //Clean UI elements if participant leaves the meeting
+                originalParticipantDelete = rtc.onParticipantDelete;
+                rtc.onParticipantDelete = function (participant) {
+                    cleanUiElements(participant.uuid);
+                    originalParticipantDelete(participant);
+
+                };
                 initiated = true;
+            }
+
+
+            //Clean up the context
+            if (rtc && !details.started && initiated) {
+                inboundElements.clear();
+                messaggeHistoryMap.clear();
+                messaggeIconMap.clear();
+                displayedFrames.forEach(frame => {
+                    frame.closeFrame();
+                });
+                displayedFrames.clear();
+                rtc = null;
+                initiated = false;
             }
         });
     }
 
+    function cleanUiElements(uuid) {
+        inboundElements.delete(uuid);
+        messaggeHistoryMap.delete(uuid);
+        messaggeIconMap.get(uuid)?.remove();
+        messaggeIconMap.delete(uuid);
+        displayedFrames.get(uuid)?.closeFrame();
+        displayedFrames.delete(uuid);
+    }
+
     function generateDomElement(messaggeHistoryEntry, index, inboundElement) {
-        const div = document.createElement('div');
-        const p = document.createElement('p');
+        const div = document.createElement(DIV);
+        const p = document.createElement(P);
         const payload = document.createTextNode(messaggeHistoryEntry.payload);
-        const span = document.createElement('span');
+        const span = document.createElement(SPAN);
         const metaData = document.createTextNode(
             messaggeHistoryEntry.time + ' (' + messaggeHistoryEntry.sender + ')'
         );
@@ -83,9 +128,9 @@
 
         var use = matchingMessageIcon.getElementsByTagName('use')[0];
         if (!readState) {
-            use.setAttributeNS(xlinkns, 'href', 'icons.svg#messages-green');
+            use.setAttributeNS(xlinkns, HREF, 'icons.svg#messages-green');
         } else {
-            use.setAttributeNS(xlinkns, 'href', 'icons.svg#messages');
+            use.setAttributeNS(xlinkns, HREF, 'icons.svg#messages');
         }
     }
 
@@ -100,9 +145,9 @@
             return;
         }
 
-        const li = document.createElement('li');
-        const svg = document.createElementNS(svgns, 'svg');
-        const use = document.createElementNS(svgns, 'use');
+        const li = document.createElement(LI);
+        const svg = document.createElementNS(svgns, SVG);
+        const use = document.createElementNS(svgns, USE);
 
         //Li
         li.setAttribute(
@@ -117,7 +162,7 @@
         svg.setAttribute('width', '20');
         svg.setAttribute('height', '20');
         //Use
-        use.setAttributeNS(xlinkns, 'href', 'icons.svg#messages');
+        use.setAttributeNS(xlinkns, HREF, 'icons.svg#messages');
 
         //Build dom
         li.appendChild(svg);
