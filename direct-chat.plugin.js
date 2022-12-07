@@ -45,7 +45,6 @@
         document.getElementsByTagName(HEAD)[0].appendChild(script);
 
         conferenceDetails$.subscribe(details => {
-
             var originalChatMessageListener;
 
             var originalParticipantDelete;
@@ -68,11 +67,9 @@
                 rtc.onParticipantDelete = function (participant) {
                     cleanUiElements(participant.uuid);
                     originalParticipantDelete(participant);
-
                 };
                 initiated = true;
             }
-
 
             //Clean up the context
             if (rtc && !details.started && initiated) {
@@ -192,8 +189,8 @@
 
     function fillFramelWithHistory(uuid) {
         var matchingMessageHistory = messaggeHistoryMap.get(uuid);
-
         var inboundElement = inboundElements.get(uuid);
+
         if (inboundElement && matchingMessageHistory) {
             matchingMessageHistory.forEach(function (item, index) {
                 generateDomElement(item, index, inboundElement);
@@ -204,7 +201,6 @@
 
     function fillChatFrame(message) {
         var matchingMessageHistory = messaggeHistoryMap.get(message.uuid);
-
         var latesMessage = new MessaggeHistoryEntry(
             message.payload,
             new Date().toLocaleTimeString(),
@@ -219,6 +215,7 @@
         }
 
         var inboundElement = inboundElements.get(message.uuid);
+
         if (inboundElement) {
             while (inboundElement.lastElementChild) {
                 inboundElement.removeChild(inboundElement.lastElementChild);
@@ -273,18 +270,22 @@
                 //Process send message event
                 frame.on('#sendMessageButton', 'click', (_frame, evt) => {
                     //Setupa
-                    var messageInputElement = frame.$(
-                        '#outboundChatMessageInput'
-                    );
-                    var payload = messageInputElement.value;
-                    rtc.sendChatMessage(payload, uuid);
-                    fillChatFrame({
-                        uuid: uuid,
-                        payload: payload,
-                        origin: 'You'
-                    });
-                    messageInputElement.value = '';
-                    generateMessageIcon(uuid);
+                    try {
+                        var messageInputElement = frame.$(
+                            '#outboundChatMessageInput'
+                        );
+                        var payload = messageInputElement.value;
+                        rtc.sendChatMessage(payload, uuid);
+                        fillChatFrame({
+                            uuid: uuid,
+                            payload: payload,
+                            origin: 'You'
+                        });
+                        messageInputElement.value = '';
+                        generateMessageIcon(uuid);
+                    } catch (error) {
+                        console.log(error);
+                    }
                 });
 
                 frame.on('#dialog', 'click', (_frame, evt) => {
