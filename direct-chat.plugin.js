@@ -4,6 +4,9 @@
 
     var initiated = false;
 
+    // Must be the same as used for the label in direct-chat.plugin.package.json
+    const menuItemText = 'Direct Chat';
+
     const svgns = 'http://www.w3.org/2000/svg';
     const xlinkns = 'http://www.w3.org/1999/xlink';
 
@@ -45,21 +48,30 @@
         document.getElementsByTagName(HEAD)[0].appendChild(script);
 
         conferenceDetails$.subscribe(details => {
-            var originalChatMessageListener;
-
             var originalParticipantDelete;
 
             if (details.started && !initiated) {
                 jsFrame = new JSFrame();
                 getMainPexRTC();
-                originalChatMessageListener = rtc.onChatMessage;
-                rtc.onChatMessage = function (message) {
-                    if (message.direct) {
-                        generateMessageIcon(message.uuid);
-                        fillChatFrame(message);
-                    } else {
-                        originalChatMessageListener(message);
+
+                if (!setUpOwnRosterElement()) {
+                    var rosterContainer = document.getElementsByClassName(
+                        'pex-roster-list__container'
+                    )[0];
+
+                    if (rosterContainer) {
+                        let observer = new MutationObserver(function () {
+                            if (setUpOwnRosterElement()) {
+                                observer.disconnect();
+                            }
+                        });
+                        observer.observe(rosterContainer, { childList: true });
                     }
+                }
+
+                rtc.onDirectMessage = function (message) {
+                    generateMessageIcon(message.uuid);
+                    fillChatFrame(message);
                 };
 
                 //Clean UI elements if participant leaves the meeting
@@ -226,13 +238,14 @@
             scrollToBottom(inboundElement);
         }
     }
-    // context menu item functions
+    //Context menu item functions
     function openChat(conferenceDetails) {
-        if (!rtc) {
+        const uuid = conferenceDetails.uuid;
+
+        if (!rtc || displayedFrames.get(uuid)) {
             return;
         }
 
-        const uuid = conferenceDetails.uuid;
         const frame = jsFrame.create({
             title: 'Direct chat with ' + conferenceDetails.name,
             movable: true, //Enable to be moved by mouse
@@ -351,7 +364,7 @@
         frameAppearance.titleBarCaptionLeftMargin = '10px';
         frameAppearance.titleBarCaptionColorDefault = 'gray';
         frameAppearance.titleBarCaptionColorFocused = 'white';
-        frameAppearance.titleBarCaptionTextShadow = null; //'0 1px 0 rgba(255,255,255,.7)';
+        frameAppearance.titleBarCaptionTextShadow = null;
         frameAppearance.titleBarColorDefault = 'black';
         frameAppearance.titleBarColorFocused = 'black';
         frameAppearance.titleBarBorderBottomDefault = null;
@@ -360,7 +373,6 @@
         frameAppearance.frameBorderWidthDefault = '1px';
         frameAppearance.frameBorderWidthFocused = '1px';
         frameAppearance.frameBorderColorDefault = 'black';
-        //  frameAppearance.frameBorderColorFocused = 'red';
 
         // Disable default title bar class
         frameAppearance.titleBarClassNameDefault = ' ';
@@ -435,6 +447,25 @@
         unload: unload,
         openChat: openChat
     });
+
+    function hideOwnDirectChatEntry() {
+        var ownRosterEelement = Array.from(
+            document.getElementsByTagName('span')
+        ).find(element => element.innerText === menuItemText)?.parentNode;
+        if (ownRosterEelement) {
+            ownRosterEelement.style.display = 'none';
+        }
+    }
+
+    function setUpOwnRosterElement() {
+        var ownRosterEelement = document.getElementById(rtc.uuid);
+        if (ownRosterEelement) {
+            ownRosterEelement.addEventListener('click', hideOwnDirectChatEntry);
+            return true;
+        }
+
+        return false;
+    }
 
     function getMainPexRTC() {
         if (rtc) {

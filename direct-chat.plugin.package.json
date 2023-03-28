@@ -1,7 +1,7 @@
 {
     "id": "direct-chat-plugin-1.0",
     "name": "Direct Chat",
-    "description": "Allows to sennd chat messages directly with specific participants",
+    "description": "Allows to send chat messages directly to specific participants",
     "version": 1.0,
     "srcURL": "direct-chat.plugin.js",
     "allowUnload": false,
